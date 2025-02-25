@@ -1546,7 +1546,7 @@ static int stm_is_unlocked(struct spi_nor *nor, loff_t ofs, uint64_t len)
 #endif /* CONFIG_SPI_FLASH_STMICRO */
 #endif
 
-static const struct flash_info *spi_nor_read_id(struct spi_nor *nor)
+static const struct flash_info *spi_nor_get_flash_info(struct spi_nor *nor)
 {
 	int			tmp;
 	u8			id[SPI_NOR_MAX_ID_LEN];
@@ -4480,7 +4480,7 @@ int spi_nor_scan(struct spi_nor *nor)
 	spi_nor_soft_reset(nor);
 #endif /* CONFIG_SPI_FLASH_SOFT_RESET_ON_BOOT */
 
-	info = spi_nor_read_id(nor);
+	info = spi_nor_get_flash_info(nor);
 	if (IS_ERR_OR_NULL(info))
 		return -ENOENT;
 	nor->info = info;
