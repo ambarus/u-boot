@@ -1580,12 +1580,16 @@ static const struct flash_info *spi_nor_get_flash_info(struct spi_nor *nor)
 {
 	u8			id[SPI_NOR_MAX_ID_LEN];
 	const struct flash_info	*info;
+	u32 ndummy = 0;
 	int ret;
+
+	if (!ofnode_read_u32(dev_ofnode(nor->dev), "rdid-dummy-ncycles", &ndummy))
+		ndummy /= BITS_PER_BYTE;
 
 	if (nor->flags & SNOR_F_HAS_PARALLEL)
 		nor->spi->flags |= SPI_XFER_LOWER;
 
-	ret = spi_nor_read_id(nor, 0, 0, id, nor->reg_proto);
+	ret = spi_nor_read_id(nor, 0, ndummy, id, nor->reg_proto);
 	if (ret) {
 		dev_dbg(nor->dev, "error %d reading JEDEC ID\n", ret);
 		return ERR_PTR(ret);
