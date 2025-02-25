@@ -1546,19 +1546,49 @@ static int stm_is_unlocked(struct spi_nor *nor, loff_t ofs, uint64_t len)
 #endif /* CONFIG_SPI_FLASH_STMICRO */
 #endif
 
+#define SPI_NOR_READID_OP(naddr, ndummy, buf, len)			\
+	SPI_MEM_OP(SPI_MEM_OP_CMD(SPINOR_OP_RDID, 0),			\
+		   SPI_MEM_OP_ADDR(naddr, 0, 0),			\
+		   SPI_MEM_OP_DUMMY(ndummy, 0),				\
+		   SPI_MEM_OP_DATA_IN(len, buf, 0))
+
+/**
+ * spi_nor_read_id() - Read the JEDEC ID.
+ * @nor:	pointer to 'struct spi_nor'.
+ * @naddr:	number of address bytes to send. Can be zero if the operation
+ *		does not need to send an address.
+ * @ndummy:	number of dummy bytes to send after an opcode or address. Can
+ *		be zero if the operation does not require dummy bytes.
+ * @id:		pointer to a DMA-able buffer where the value of the JEDEC ID
+ *		will be written.
+ * @proto:	the SPI protocol for register operation.
+ *
+ * Return: 0 on success, -errno otherwise.
+ */
+int spi_nor_read_id(struct spi_nor *nor, u8 naddr, u8 ndummy, u8 *id,
+		    enum spi_nor_protocol proto)
+{
+	struct spi_mem_op op = SPI_NOR_READID_OP(naddr, ndummy, id,
+						 SPI_NOR_MAX_ID_LEN);
+
+	spi_nor_setup_op(nor, &op, proto);
+
+	return spi_mem_exec_op(nor->spi, &op);
+}
+
 static const struct flash_info *spi_nor_get_flash_info(struct spi_nor *nor)
 {
-	int			tmp;
 	u8			id[SPI_NOR_MAX_ID_LEN];
 	const struct flash_info	*info;
+	int ret;
 
 	if (nor->flags & SNOR_F_HAS_PARALLEL)
 		nor->spi->flags |= SPI_XFER_LOWER;
 
-	tmp = nor->read_reg(nor, SPINOR_OP_RDID, id, SPI_NOR_MAX_ID_LEN);
-	if (tmp < 0) {
-		dev_dbg(nor->dev, "error %d reading JEDEC ID\n", tmp);
-		return ERR_PTR(tmp);
+	ret = spi_nor_read_id(nor, 0, 0, id, nor->reg_proto);
+	if (ret) {
+		dev_dbg(nor->dev, "error %d reading JEDEC ID\n", ret);
+		return ERR_PTR(ret);
 	}
 
 	info = spi_nor_ids;
