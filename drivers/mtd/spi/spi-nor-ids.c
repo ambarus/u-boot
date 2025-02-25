@@ -420,6 +420,7 @@ const struct flash_info spi_nor_ids[] = {
 	{ INFO("s28hs512t",  0x345b1a,      0, 256 * 1024, 256, SPI_NOR_OCTAL_DTR_READ) },
 	{ INFO("s28hs01gt",  0x345b1b,      0, 256 * 1024, 512, SPI_NOR_OCTAL_DTR_READ) },
 	{ INFO("s28hs02gt",  0x345b1c,      0, 256 * 1024, 1024, SPI_NOR_OCTAL_DTR_READ | NO_CHIP_ERASE) },
+	{ INFO("cyrs17b512",  0xc16020,      0, 8 * 1024 * 1024, 8, 0) },
 #endif
 #endif
 #ifdef CONFIG_SPI_FLASH_SST		/* SST */
